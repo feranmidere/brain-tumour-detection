@@ -133,7 +133,7 @@ def train(train_data, valid_data, epochs=15, optimiser=optim.Adam, early_stoppin
 
 if __name__ == '__main__':
     train_transforms, valid_transforms = set_transforms()
-    train_data, valid_data = make_dataset('train', train_transforms), make_dataset('valid', valid_transforms)
+    train_data, valid_data = make_dataset('train', train_transforms), make_dataset('val', valid_transforms)
     model, losses, metrics = train(train_data, valid_data)
     cwd = Path(os.getcwd())
     out_path = cwd.parent / 'model' / 'model.pt'
