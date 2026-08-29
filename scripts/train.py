@@ -4,7 +4,7 @@ from torchvision.transforms import v2
 from torchvision.datasets import ImageFolder
 from scripts.data import download_data
 from torch.utils.data import DataLoader
-from tqdm import tqdm
+from tqdm.auto import tqdm
 import torch
 import torch.optim as optim
 from pathlib import Path
@@ -45,7 +45,7 @@ def make_dataset(set: str, transforms) -> ImageFolder:
 
 
 def train(train_data, valid_data, epochs=15, optimiser=optim.Adam, early_stopping=3, optimiser_args: dict=None):
-    device = torch.device('cuda')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = resnet50(weights=ResNet50_Weights.DEFAULT)
     for params in model.parameters():
         params.requires_grad = False
