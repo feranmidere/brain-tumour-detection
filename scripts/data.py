@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 import shutil
 
 def download_data(extension: str = 'Brain Tumor Data Set/Brain Tumor Data Set') -> Path:
+    Path('data').mkdir(exists_ok=True)
     return Path(kagglehub.dataset_download('preetviradiya/brian-tumor-dataset', output_dir='data/')) / extension
 
 def split_data(train_size=0.7) -> None:
