@@ -4,7 +4,7 @@ from torchvision.transforms import v2
 from torchvision.datasets import ImageFolder
 from scripts.data import download_data
 from torch.utils.data import DataLoader
-import tqdm
+from tqdm import tqdm
 import torch
 import torch.optim as optim
 from pathlib import Path
