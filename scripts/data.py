@@ -6,7 +6,8 @@ import shutil
 
 def download_data(extension: str = 'Brain Tumor Data Set/Brain Tumor Data Set') -> Path:
     Path('data').mkdir(exist_ok=True)
-    return Path(kagglehub.dataset_download('preetviradiya/brian-tumor-dataset', output_dir='data/')) / extension
+    kagglehub.dataset_download('preetviradiya/brian-tumor-dataset', output_dir='data/')
+    return Path('data/') / extension
 
 def split_data(train_size=0.7) -> None:
     path = download_data()
