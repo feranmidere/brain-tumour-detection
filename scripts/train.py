@@ -136,7 +136,10 @@ def run_training(train_args: dict = None, return_results: bool=True):
     model = torch.load(model_path)
     train_transforms, valid_transforms = set_transforms()
     train_data, valid_data = make_dataset('train', train_transforms), make_dataset('val', valid_transforms)
-    losses, metrics = train(train_data, valid_data, **train_args)
+    if train_args is None:
+        losses, metrics = train(train_data, valid_data)
+    else:
+        losses, metrics = train(train_data, valid_data, **train_args)
     if return_results:
         return model, losses, metrics
     else:
