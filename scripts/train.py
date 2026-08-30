@@ -1,4 +1,3 @@
-from torchvision.models import resnet50, ResNet50_Weights
 import torch.nn as nn
 from torchvision.transforms import v2
 from torchvision.datasets import ImageFolder
@@ -9,6 +8,8 @@ import torch
 import torch.optim as optim
 from pathlib import Path
 import os
+import pandas as pd
+from huggingface_hub import hf_hub_download
 
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
@@ -44,12 +45,9 @@ def make_dataset(set: str, transforms) -> ImageFolder:
     return data    
 
 
-def train(train_data, valid_data, epochs=15, optimiser=optim.Adam, early_stopping=3, optimiser_args: dict=None):
+def train(model, train_data, valid_data, epochs=15, optimiser=optim.Adam, early_stopping=3, optimiser_args: dict=None):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = resnet50(weights=ResNet50_Weights.DEFAULT)
-    for params in model.parameters():
-        params.requires_grad = False
-    model.fc = nn.Linear(in_features=model.fc.in_features, out_features=1)  
+    model.fc = nn.Linear(in_features=model.fc.in_features,  out_features=1)  
     model.to(device)
 
     trainable_params = [p for p in model.parameters() if p.requires_grad]
@@ -129,13 +127,25 @@ def train(train_data, valid_data, epochs=15, optimiser=optim.Adam, early_stoppin
             print(f'Early stopping triggered at epoch {epoch+1}')
             break
 
-    return model, losses, metrics
+    return losses, metrics
 
-if __name__ == '__main__':
+def run_training(train_args: dict = None, return_results: bool=True):
+    in_dir = Path('base_model')
+    in_dir.mkdir(exist_ok=True)
+    model_path = hf_hub_download(repo_id='Lab-Rasool/RadImageNet', filename='ResNet50.pt', local_dir=in_dir)
+    model = torch.load(model_path)
     train_transforms, valid_transforms = set_transforms()
     train_data, valid_data = make_dataset('train', train_transforms), make_dataset('val', valid_transforms)
-    model, losses, metrics = train(train_data, valid_data)
-    cwd = Path(os.getcwd())
-    out_path = cwd.parent / 'model' / 'model.pt'
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    torch.save(model.state_dict(), out_path)
+    losses, metrics = train(train_data, valid_data, **train_args)
+    if return_results:
+        return model, losses, metrics
+    else:
+        cwd = Path(os.getcwd())
+        out_dir = cwd.parent / 'model'
+        out_dir.parent.mkdir(parents=True, exist_ok=True)
+        torch.save(model.state_dict(), out_dir / 'model.pt')
+        pd.DataFrame(losses).to_csv(out_dir / 'losses.csv')
+        pd.DataFrame(metrics).to_csv(out_dir / 'metrics.csv')
+
+if __name__ == '__main__':
+    model, losses, metrics = run_training()
