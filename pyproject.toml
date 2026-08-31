@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "brain_tumor_detector"
 version = "0.1.0"
-dependencies = ["torch", "torchvision", "numpy", "matplotlib", "pathlib", "scikit-learn", "kagglehub", "tqdm", "huggingface_hub"]
+dependencies = ["torch", "torchvision", "numpy", "matplotlib", "pathlib", "scikit-learn", "kagglehub", "tqdm", "huggingface_hub", "voila"]
 
 [tool.setuptools.packages.find]
 where = ["."]
