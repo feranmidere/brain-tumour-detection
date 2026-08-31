@@ -18,7 +18,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 def set_transforms() -> tuple[v2.Compose, v2.Compose]:
     train_transforms = v2.Compose([
         v2.ToImage(),
-        v2.RGB(),
+        v2.Grayscale(num_output_channels=3),
         v2.RandomAffine(degrees=15, translate=(0.05, 0.05), scale=(0.95, 1.05)),
         v2.Resize(224),
         v2.CenterCrop((224, 224)),
@@ -29,7 +29,7 @@ def set_transforms() -> tuple[v2.Compose, v2.Compose]:
 
     valid_transforms = v2.Compose([
         v2.ToImage(),
-        v2.RGB(),
+        v2.Grayscale(num_output_channels=3),
         v2.Resize(224),
         v2.CenterCrop((224, 224)),
         v2.ToDtype(torch.float32, scale=True),
@@ -60,6 +60,7 @@ def train(model, train_data, valid_data, epochs=10, optimiser=optim.Adam, early_
     losses = {'train': [], 'val': []}
     metrics = {'train': [], 'val': []}
 
+    best_weights = None
     best_val_loss = float('inf')
     no_decrease_count = 0
     for epoch in tqdm(range(epochs)):
@@ -116,12 +117,14 @@ def train(model, train_data, valid_data, epochs=10, optimiser=optim.Adam, early_
             no_decrease_count += 1
         else:
             best_val_loss = avg_val_loss
+            best_weights = model.state_dict()
             no_decrease_count = 0
 
         if no_decrease_count >= early_stopping:
             print(f'Early stopping triggered at epoch {epoch+1}')
             break
-    
+
+    model.load_state_dict(best_weights)
     return model, losses, metrics
 
 def run_training(return_results: bool=True):
