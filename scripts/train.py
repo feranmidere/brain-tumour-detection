@@ -1,18 +1,19 @@
-from torchvision.models import resnet50, ResNet50_Weights
 import torch.nn as nn
 from torchvision.transforms import v2
 from torchvision.datasets import ImageFolder
-from scripts.data import download_data
+from scripts.data import download_data, split_data
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 import torch
 import torch.optim as optim
 from pathlib import Path
 import os
-
+import pandas as pd
+from torchvision.models import resnet50
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def set_transforms() -> tuple[v2.Compose, v2.Compose]:
     train_transforms = v2.Compose([
@@ -44,20 +45,12 @@ def make_dataset(set: str, transforms) -> ImageFolder:
     return data    
 
 
-def train(train_data, valid_data, epochs=15, optimiser=optim.Adam, early_stopping=3, optimiser_args: dict=None):
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = resnet50(weights=ResNet50_Weights.DEFAULT)
-    for params in model.parameters():
-        params.requires_grad = False
-    model.fc = nn.Linear(in_features=model.fc.in_features, out_features=1)  
-    model.to(device)
-
-    trainable_params = [p for p in model.parameters() if p.requires_grad]
-
-    if optimiser_args is None:
+def train(model, train_data, valid_data, epochs=10, optimiser=optim.Adam, early_stopping=3, param_dict=None):
+    if param_dict is None:
+        trainable_params = [p for p in model.parameters() if p.requires_grad]
         opt = optimiser(trainable_params)   
     else:
-        opt = optimiser(trainable_params, **optimiser_args)
+        opt = optimiser(param_dict)
 
     train_loader = DataLoader(train_data, batch_size=32, shuffle=True)
     valid_loader = DataLoader(valid_data, batch_size=32)
@@ -128,14 +121,29 @@ def train(train_data, valid_data, epochs=15, optimiser=optim.Adam, early_stoppin
         if no_decrease_count >= early_stopping:
             print(f'Early stopping triggered at epoch {epoch+1}')
             break
-
+    
     return model, losses, metrics
 
-if __name__ == '__main__':
+def run_training(return_results: bool=True):
+    model = resnet50(weights='DEFAULT')
+    model.fc = nn.Linear(in_features=model.fc.in_features,  out_features=1)  
+    model.to(device)
+
     train_transforms, valid_transforms = set_transforms()
+    download_data()
+    split_data()
     train_data, valid_data = make_dataset('train', train_transforms), make_dataset('val', valid_transforms)
-    model, losses, metrics = train(train_data, valid_data)
-    cwd = Path(os.getcwd())
-    out_path = cwd.parent / 'model' / 'model.pt'
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    torch.save(model.state_dict(), out_path)
+
+    model, losses, metrics = train(model, train_data, valid_data)
+    
+    if return_results:
+        return model, losses, metrics
+    else:
+        out_dir = Path('model')
+        out_dir.mkdir(parents=True, exist_ok=True)
+        torch.save(model.state_dict(), out_dir / 'model.pt')
+        pd.DataFrame(losses).to_csv(out_dir / 'losses.csv')
+        pd.DataFrame(metrics).to_csv(out_dir / 'metrics.csv')
+
+if __name__ == '__main__':
+    run_training(return_results=False)
