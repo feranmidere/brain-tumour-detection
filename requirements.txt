@@ -1,0 +1,19 @@
+# Core Machine Learning & Data Processing
+torch
+torchvision
+numpy
+scikit-learn
+pillow
+
+# Datasets & Models
+kagglehub
+huggingface_hub
+
+# Utilities & Visualization
+matplotlib
+tqdm
+
+# Web App & UI
+solara
+voila
+ipywidgets>=8.0.0
