@@ -9,4 +9,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["solara", "run", "main.py:box","--host=0.0.0.0", "--port=8000", "--production"]
+CMD ["solara", "run", "main.py:page","--host=0.0.0.0", "--port=8000", "--production"]
