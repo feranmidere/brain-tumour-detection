@@ -9,4 +9,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["solara", "run", "main.py:app"]
+CMD ["solara", "run", "main.py:box"]

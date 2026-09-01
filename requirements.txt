@@ -4,6 +4,7 @@ torchvision
 numpy
 scikit-learn
 pillow
+pandas
 
 # Datasets & Models
 kagglehub
