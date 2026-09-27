@@ -51,11 +51,11 @@ docker build -t brain-tumour-detection
 
 2. **Run the container:**
 ```bash
-docker run -p 8765:8765 brain-tumour-detection
+docker run -p 8000:8000 brain-tumour-detection
 ```
 
 3. **Open the Web UI:**
-   Navigate to `http://localhost:8765` in your browser.
+   Navigate to `http://localhost:8000` in your browser.
 
 ---
 
